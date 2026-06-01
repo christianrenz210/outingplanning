@@ -167,8 +167,11 @@ def register():
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
-    pw   = data.get('password', '')
-    user = data.get('user', '').strip()
+    pw     = data.get('password', '')
+    user   = data.get('user', '').strip()
+    status = data.get('status', 'going')
+    if status not in ('going', 'maybe'):
+        status = 'going'
     if not pw or not user:
         return jsonify({'error': 'All fields required'}), 400
     conn = get_db()
@@ -181,12 +184,15 @@ def login():
     session['team_id']   = row['id']
     session['team_name'] = row['name']
     session['user_name'] = user
-    # auto-add to attendees if not yet listed
+    # auto-add or update attendee status
     cur.execute(q('SELECT id FROM attendees WHERE team_id=? AND LOWER(name)=LOWER(?)'), (row['id'], user))
-    if not fetchone(cur):
+    existing = fetchone(cur)
+    if existing:
+        cur.execute(q('UPDATE attendees SET status=? WHERE id=?'), (status, existing['id']))
+    else:
         cur.execute(q('INSERT INTO attendees (team_id,name,role,status) VALUES (?,?,?,?)'),
-                    (row['id'], user, 'Member', 'going'))
-        conn.commit()
+                    (row['id'], user, 'Member', status))
+    conn.commit()
     conn.close()
     return jsonify({'team': row['name'], 'user': user})
 
