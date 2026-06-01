@@ -1,14 +1,61 @@
 from flask import Flask, request, jsonify, session, render_template
-import sqlite3, hashlib, os
+import hashlib, os
 
 app = Flask(__name__)
 app.secret_key = 'outingplanning_secret_2025'
 
-# ── DB PATH ───────────────────────────────────────────────
-if os.environ.get('RENDER'):
-    DB = '/data/outingplanning.db'
+# ── DB ABSTRACTION ────────────────────────────────────────
+# Local = SQLite, Render = PostgreSQL (set DATABASE_URL env var)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    import psycopg2
+    import psycopg2.extras
+
+    def get_db():
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+
+    def q(sql):
+        # convert SQLite ? placeholders to PostgreSQL %s
+        return sql.replace('?', '%s')
+
+    def fetchall(cursor):
+        cols = [d[0] for d in cursor.description]
+        return [dict(zip(cols, row)) for row in cursor.fetchall()]
+
+    def fetchone(cursor):
+        if cursor.description is None:
+            return None
+        cols = [d[0] for d in cursor.description]
+        row = cursor.fetchone()
+        return dict(zip(cols, row)) if row else None
+
+    def lastrowid(cursor):
+        cursor.execute('SELECT lastval()')
+        return cursor.fetchone()[0]
+
 else:
-    DB = os.path.join(os.path.dirname(__file__), 'outingplanning.db')
+    import sqlite3
+    SQLITE_DB = os.path.join(os.path.dirname(__file__), 'outingplanning.db')
+
+    def get_db():
+        conn = sqlite3.connect(SQLITE_DB)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def q(sql):
+        return sql  # SQLite uses ? already
+
+    def fetchall(cursor):
+        return [dict(r) for r in cursor.fetchall()]
+
+    def fetchone(cursor):
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+    def lastrowid(cursor):
+        return cursor.lastrowid
 
 # ── PAGE ROUTES ───────────────────────────────────────────
 @app.route('/')
@@ -24,60 +71,78 @@ def dashboard_page():
     return render_template('dashboard.html')
 
 # ── DB SETUP ──────────────────────────────────────────────
-def get_db():
-    conn = sqlite3.connect(DB)
-    conn.row_factory = sqlite3.Row
-    return conn
-
 TEAM_NAME = 'Swimming Outing'
 
 def hash_pw(pw):
     return hashlib.sha256(pw.encode()).hexdigest()
 
 def init_db():
-    with get_db() as db:
-        db.executescript('''
+    conn = get_db()
+    cur = conn.cursor()
+    if DATABASE_URL:
+        cur.execute('''CREATE TABLE IF NOT EXISTS teams (
+            id SERIAL PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            event_date TEXT,
+            event_location TEXT)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS attendees (
+            id SERIAL PRIMARY KEY,
+            team_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            role TEXT DEFAULT 'Guest',
+            status TEXT DEFAULT 'going')''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS foods (
+            id SERIAL PRIMARY KEY,
+            team_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            assigned_to TEXT DEFAULT 'TBD',
+            category TEXT DEFAULT 'Main Dish')''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS polls (
+            id SERIAL PRIMARY KEY,
+            team_id INTEGER NOT NULL,
+            question TEXT NOT NULL)''')
+        cur.execute('''CREATE TABLE IF NOT EXISTS poll_options (
+            id SERIAL PRIMARY KEY,
+            poll_id INTEGER NOT NULL,
+            label TEXT NOT NULL,
+            votes INTEGER DEFAULT 0)''')
+    else:
+        cur.executescript('''
             CREATE TABLE IF NOT EXISTS teams (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
                 event_date TEXT,
-                event_location TEXT
-            );
+                event_location TEXT);
             CREATE TABLE IF NOT EXISTS attendees (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 team_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
                 role TEXT DEFAULT 'Guest',
-                status TEXT DEFAULT 'going',
-                FOREIGN KEY (team_id) REFERENCES teams(id)
-            );
+                status TEXT DEFAULT 'going');
             CREATE TABLE IF NOT EXISTS foods (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 team_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
                 assigned_to TEXT DEFAULT 'TBD',
-                category TEXT DEFAULT 'Main Dish',
-                FOREIGN KEY (team_id) REFERENCES teams(id)
-            );
+                category TEXT DEFAULT 'Main Dish');
             CREATE TABLE IF NOT EXISTS polls (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 team_id INTEGER NOT NULL,
-                question TEXT NOT NULL,
-                FOREIGN KEY (team_id) REFERENCES teams(id)
-            );
+                question TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS poll_options (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 poll_id INTEGER NOT NULL,
                 label TEXT NOT NULL,
-                votes INTEGER DEFAULT 0,
-                FOREIGN KEY (poll_id) REFERENCES polls(id)
-            );
+                votes INTEGER DEFAULT 0);
         ''')
-        db.execute(
-            'INSERT OR IGNORE INTO teams (name, password_hash) VALUES (?, ?)',
-            (TEAM_NAME, hash_pw('swim2025'))
-        )
+    cur.execute(q('INSERT INTO teams (name, password_hash) VALUES (?,?) ON CONFLICT (name) DO NOTHING'
+                  if DATABASE_URL else
+                  'INSERT OR IGNORE INTO teams (name, password_hash) VALUES (?,?)'),
+                (TEAM_NAME, hash_pw('swim2025')))
+    conn.commit()
+    conn.close()
 
 # ── AUTH ──────────────────────────────────────────────────
 @app.route('/api/register', methods=['POST'])
@@ -87,12 +152,17 @@ def register():
     pw   = data.get('password', '')
     if not team or not pw:
         return jsonify({'error': 'All fields required'}), 400
+    conn = get_db()
+    cur = conn.cursor()
     try:
-        with get_db() as db:
-            db.execute('INSERT INTO teams (name, password_hash) VALUES (?,?)', (team, hash_pw(pw)))
+        cur.execute(q('INSERT INTO teams (name, password_hash) VALUES (?,?)'), (team, hash_pw(pw)))
+        conn.commit()
         return jsonify({'message': 'Team registered'})
-    except sqlite3.IntegrityError:
+    except Exception:
+        conn.rollback()
         return jsonify({'error': 'Team name already exists'}), 409
+    finally:
+        conn.close()
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -101,8 +171,11 @@ def login():
     user = data.get('user', '').strip()
     if not pw or not user:
         return jsonify({'error': 'All fields required'}), 400
-    with get_db() as db:
-        row = db.execute('SELECT * FROM teams WHERE password_hash=?', (hash_pw(pw),)).fetchone()
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(q('SELECT * FROM teams WHERE password_hash=?'), (hash_pw(pw),))
+    row = fetchone(cur)
+    conn.close()
     if not row:
         return jsonify({'error': 'Incorrect password'}), 401
     session['team_id']   = row['id']
@@ -119,7 +192,7 @@ def logout():
 def me():
     if 'team_id' not in session:
         return jsonify({'error': 'Not logged in'}), 401
-    return jsonify({'team': session['team_name'], 'user': session['user_name'], 'team_id': session['team_id']})
+    return jsonify({'team': session['team_name'], 'user': session['user_name']})
 
 # ── EVENT ─────────────────────────────────────────────────
 @app.route('/api/event', methods=['GET','PUT'])
@@ -127,12 +200,16 @@ def event():
     if 'team_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     tid = session['team_id']
-    with get_db() as db:
-        if request.method == 'PUT':
-            d = request.json
-            db.execute('UPDATE teams SET event_date=?, event_location=? WHERE id=?',
-                       (d.get('date'), d.get('location'), tid))
-        row = db.execute('SELECT event_date, event_location FROM teams WHERE id=?', (tid,)).fetchone()
+    conn = get_db()
+    cur = conn.cursor()
+    if request.method == 'PUT':
+        d = request.json
+        cur.execute(q('UPDATE teams SET event_date=?, event_location=? WHERE id=?'),
+                    (d.get('date'), d.get('location'), tid))
+        conn.commit()
+    cur.execute(q('SELECT event_date, event_location FROM teams WHERE id=?'), (tid,))
+    row = fetchone(cur)
+    conn.close()
     return jsonify({'date': row['event_date'], 'location': row['event_location']})
 
 # ── ATTENDEES ─────────────────────────────────────────────
@@ -141,20 +218,27 @@ def attendees():
     if 'team_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     tid = session['team_id']
-    with get_db() as db:
-        if request.method == 'POST':
-            d = request.json
-            db.execute('INSERT INTO attendees (team_id,name,role,status) VALUES (?,?,?,?)',
-                       (tid, d['name'], d.get('role','Guest'), d.get('status','going')))
-        rows = db.execute('SELECT * FROM attendees WHERE team_id=?', (tid,)).fetchall()
-    return jsonify([dict(r) for r in rows])
+    conn = get_db()
+    cur = conn.cursor()
+    if request.method == 'POST':
+        d = request.json
+        cur.execute(q('INSERT INTO attendees (team_id,name,role,status) VALUES (?,?,?,?)'),
+                    (tid, d['name'], d.get('role','Guest'), d.get('status','going')))
+        conn.commit()
+    cur.execute(q('SELECT * FROM attendees WHERE team_id=?'), (tid,))
+    rows = fetchall(cur)
+    conn.close()
+    return jsonify(rows)
 
 @app.route('/api/attendees/<int:aid>', methods=['DELETE'])
 def delete_attendee(aid):
     if 'team_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    with get_db() as db:
-        db.execute('DELETE FROM attendees WHERE id=? AND team_id=?', (aid, session['team_id']))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(q('DELETE FROM attendees WHERE id=? AND team_id=?'), (aid, session['team_id']))
+    conn.commit()
+    conn.close()
     return jsonify({'message': 'Deleted'})
 
 # ── FOOD ──────────────────────────────────────────────────
@@ -163,20 +247,27 @@ def foods():
     if 'team_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     tid = session['team_id']
-    with get_db() as db:
-        if request.method == 'POST':
-            d = request.json
-            db.execute('INSERT INTO foods (team_id,name,assigned_to,category) VALUES (?,?,?,?)',
-                       (tid, d['name'], d.get('assigned_to','TBD'), d.get('category','Main Dish')))
-        rows = db.execute('SELECT * FROM foods WHERE team_id=?', (tid,)).fetchall()
-    return jsonify([dict(r) for r in rows])
+    conn = get_db()
+    cur = conn.cursor()
+    if request.method == 'POST':
+        d = request.json
+        cur.execute(q('INSERT INTO foods (team_id,name,assigned_to,category) VALUES (?,?,?,?)'),
+                    (tid, d['name'], d.get('assigned_to','TBD'), d.get('category','Main Dish')))
+        conn.commit()
+    cur.execute(q('SELECT * FROM foods WHERE team_id=?'), (tid,))
+    rows = fetchall(cur)
+    conn.close()
+    return jsonify(rows)
 
 @app.route('/api/foods/<int:fid>', methods=['DELETE'])
 def delete_food(fid):
     if 'team_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    with get_db() as db:
-        db.execute('DELETE FROM foods WHERE id=? AND team_id=?', (fid, session['team_id']))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(q('DELETE FROM foods WHERE id=? AND team_id=?'), (fid, session['team_id']))
+    conn.commit()
+    conn.close()
     return jsonify({'message': 'Deleted'})
 
 # ── POLLS ─────────────────────────────────────────────────
@@ -185,50 +276,64 @@ def polls():
     if 'team_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     tid = session['team_id']
-    with get_db() as db:
-        if request.method == 'POST':
-            d = request.json
-            cur = db.execute('INSERT INTO polls (team_id,question) VALUES (?,?)', (tid, d['question']))
-            pid = cur.lastrowid
-            for opt in d.get('options', []):
-                db.execute('INSERT INTO poll_options (poll_id,label) VALUES (?,?)', (pid, opt))
-        rows = db.execute('SELECT * FROM polls WHERE team_id=?', (tid,)).fetchall()
-        result = []
-        for p in rows:
-            opts = db.execute('SELECT * FROM poll_options WHERE poll_id=?', (p['id'],)).fetchall()
-            result.append({'id': p['id'], 'question': p['question'], 'options': [dict(o) for o in opts]})
+    conn = get_db()
+    cur = conn.cursor()
+    if request.method == 'POST':
+        d = request.json
+        cur.execute(q('INSERT INTO polls (team_id,question) VALUES (?,?)'), (tid, d['question']))
+        pid = lastrowid(cur)
+        for opt in d.get('options', []):
+            cur.execute(q('INSERT INTO poll_options (poll_id,label) VALUES (?,?)'), (pid, opt))
+        conn.commit()
+    cur.execute(q('SELECT * FROM polls WHERE team_id=?'), (tid,))
+    poll_rows = fetchall(cur)
+    result = []
+    for p in poll_rows:
+        cur.execute(q('SELECT * FROM poll_options WHERE poll_id=?'), (p['id'],))
+        opts = fetchall(cur)
+        result.append({'id': p['id'], 'question': p['question'], 'options': opts})
+    conn.close()
     return jsonify(result)
 
 @app.route('/api/polls/<int:pid>', methods=['DELETE'])
 def delete_poll(pid):
     if 'team_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    with get_db() as db:
-        db.execute('DELETE FROM poll_options WHERE poll_id=?', (pid,))
-        db.execute('DELETE FROM polls WHERE id=? AND team_id=?', (pid, session['team_id']))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(q('DELETE FROM poll_options WHERE poll_id=?'), (pid,))
+    cur.execute(q('DELETE FROM polls WHERE id=? AND team_id=?'), (pid, session['team_id']))
+    conn.commit()
+    conn.close()
     return jsonify({'message': 'Deleted'})
 
 @app.route('/api/polls/<int:pid>/options', methods=['POST'])
 def add_poll_option(pid):
     if 'team_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    data = request.json
-    label = data.get('label', '').strip()
+    label = request.json.get('label', '').strip()
     if not label:
         return jsonify({'error': 'Label required'}), 400
-    with get_db() as db:
-        poll = db.execute('SELECT * FROM polls WHERE id=? AND team_id=?', (pid, session['team_id'])).fetchone()
-        if not poll:
-            return jsonify({'error': 'Poll not found'}), 404
-        db.execute('INSERT INTO poll_options (poll_id, label) VALUES (?,?)', (pid, label))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(q('SELECT id FROM polls WHERE id=? AND team_id=?'), (pid, session['team_id']))
+    if not fetchone(cur):
+        conn.close()
+        return jsonify({'error': 'Poll not found'}), 404
+    cur.execute(q('INSERT INTO poll_options (poll_id, label) VALUES (?,?)'), (pid, label))
+    conn.commit()
+    conn.close()
     return jsonify({'message': 'Option added'})
 
 @app.route('/api/polls/<int:pid>/vote/<int:oid>', methods=['POST'])
 def vote(pid, oid):
     if 'team_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    with get_db() as db:
-        db.execute('UPDATE poll_options SET votes=votes+1 WHERE id=? AND poll_id=?', (oid, pid))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(q('UPDATE poll_options SET votes=votes+1 WHERE id=? AND poll_id=?'), (oid, pid))
+    conn.commit()
+    conn.close()
     return jsonify({'message': 'Voted'})
 
 # ── STATS ─────────────────────────────────────────────────
@@ -237,11 +342,17 @@ def stats():
     if 'team_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     tid = session['team_id']
-    with get_db() as db:
-        total     = db.execute('SELECT COUNT(*) FROM attendees WHERE team_id=?', (tid,)).fetchone()[0]
-        confirmed = db.execute("SELECT COUNT(*) FROM attendees WHERE team_id=? AND status='going'", (tid,)).fetchone()[0]
-        food_count = db.execute('SELECT COUNT(*) FROM foods WHERE team_id=?', (tid,)).fetchone()[0]
-        poll_count = db.execute('SELECT COUNT(*) FROM polls WHERE team_id=?', (tid,)).fetchone()[0]
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(q('SELECT COUNT(*) FROM attendees WHERE team_id=?'), (tid,))
+    total = cur.fetchone()[0]
+    cur.execute(q("SELECT COUNT(*) FROM attendees WHERE team_id=? AND status='going'"), (tid,))
+    confirmed = cur.fetchone()[0]
+    cur.execute(q('SELECT COUNT(*) FROM foods WHERE team_id=?'), (tid,))
+    food_count = cur.fetchone()[0]
+    cur.execute(q('SELECT COUNT(*) FROM polls WHERE team_id=?'), (tid,))
+    poll_count = cur.fetchone()[0]
+    conn.close()
     return jsonify({'attendees': total, 'confirmed': confirmed, 'foods': food_count, 'polls': poll_count})
 
 init_db()
