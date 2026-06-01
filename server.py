@@ -6,7 +6,7 @@ app.secret_key = 'outingplanning_secret_2025'
 
 # ── DB PATH ───────────────────────────────────────────────
 if os.environ.get('RENDER'):
-    DB = '/tmp/outingplanning.db'
+    DB = '/data/outingplanning.db'
 else:
     DB = os.path.join(os.path.dirname(__file__), 'outingplanning.db')
 
