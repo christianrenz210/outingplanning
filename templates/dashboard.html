@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard – OutingPlanning</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+
+<!-- MOBILE TOPBAR -->
+<div class="dash-mobile-topbar">
+  <div class="brand-mobile"><i class="bi bi-water"></i> OutingPlanning</div>
+  <button class="btn-hamburger" onclick="toggleSidebar()">
+    <i class="bi bi-list" id="hamburgerIcon"></i>
+  </button>
+</div>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="dash-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div class="dash-sidebar d-flex flex-column" id="sidebar">
+  <div class="brand"><i class="bi bi-water"></i> OutingPlanning</div>
+  <ul class="nav flex-column flex-grow-1">
+    <li class="nav-item">
+      <a class="nav-link active" href="#" onclick="showSection('overview',this)">
+        <i class="bi bi-grid-fill"></i> Overview
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" onclick="showSection('attendees',this)">
+        <i class="bi bi-people-fill"></i> Attendees
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" onclick="showSection('food',this)">
+        <i class="bi bi-egg-fried"></i> Food Plan
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" onclick="showSection('polls',this)">
+        <i class="bi bi-bar-chart-fill"></i> Polls
+      </a>
+    </li>
+  </ul>
+  <div class="mt-auto pt-3 border-top border-secondary">
+    <a href="#" class="nav-link text-danger" onclick="doLogout()">
+      <i class="bi bi-box-arrow-left"></i> Logout
+    </a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="dash-main">
+
+  <!-- TOPBAR -->
+  <div class="dash-topbar">
+    <div>
+      <h4 id="pageTitle"><i class="bi bi-grid-fill me-2 text-primary"></i>Overview</h4>
+      <p class="text-muted mb-0" style="font-size:.85rem;">
+        Team: <strong id="teamDisplay">–</strong> &nbsp;|&nbsp; Welcome, <strong id="userDisplay">–</strong>
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-primary px-3 py-2">
+        <i class="bi bi-calendar-event me-1"></i>
+        <span id="eventLabel">TBD</span>
+      </span>
+      <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#eventModal">
+        <i class="bi bi-pencil-fill"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="sec-overview">
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
+          <div><h3 id="statAttendees">0</h3><p>Total Attendees</p></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon teal"><i class="bi bi-check-circle-fill"></i></div>
+          <div><h3 id="statConfirmed">0</h3><p>Confirmed Going</p></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="bi bi-egg-fried"></i></div>
+          <div><h3 id="statFood">0</h3><p>Food Items</p></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="bi bi-bar-chart-fill"></i></div>
+          <div><h3 id="statPolls">0</h3><p>Active Polls</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="section-card">
+          <div class="section-card-title"><i class="bi bi-people-fill text-primary"></i> Recent Attendees</div>
+          <div id="overviewAttendees"><div class="text-muted text-center py-3">Loading...</div></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="section-card">
+          <div class="section-card-title"><i class="bi bi-egg-fried text-warning"></i> Food Plan Summary</div>
+          <div id="overviewFood"><div class="text-muted text-center py-3">Loading...</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATTENDEES -->
+  <div id="sec-attendees" class="d-none">
+    <div class="section-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-card-title mb-0"><i class="bi bi-people-fill text-primary"></i> Attendees List</div>
+        <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addAttendeeModal">
+          <i class="bi bi-plus-lg me-1"></i> Add Person
+        </button>
+      </div>
+      <div id="attendeeList"></div>
+    </div>
+  </div>
+
+  <!-- FOOD -->
+  <div id="sec-food" class="d-none">
+    <div class="section-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-card-title mb-0"><i class="bi bi-egg-fried text-warning"></i> Food Plan</div>
+        <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addFoodModal">
+          <i class="bi bi-plus-lg me-1"></i> Add Food
+        </button>
+      </div>
+      <div id="foodList"></div>
+    </div>
+  </div>
+
+  <!-- POLLS -->
+  <div id="sec-polls" class="d-none">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-700 mb-0" style="font-weight:700;color:#03045e;">
+        <i class="bi bi-bar-chart-fill text-primary me-2"></i>Team Polls
+      </h5>
+      <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createPollModal">
+        <i class="bi bi-plus-lg me-1"></i> Create Poll
+      </button>
+    </div>
+    <div id="pollList" class="row g-3"></div>
+  </div>
+
+</div>
+
+<!-- MODALS -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 rounded-3">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-calendar-event me-2"></i>Set Event Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label fw-semibold">Event Date</label>
+        <input type="date" class="form-control" id="eventDateInput"/>
+        <label class="form-label fw-semibold mt-2">Location</label>
+        <input type="text" class="form-control" id="eventLocation" placeholder="e.g. Splash Island, Laguna"/>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-primary-custom w-100" onclick="saveEvent()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addAttendeeModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-3">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2"></i>Add Attendee</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Full Name</label>
+          <input type="text" class="form-control" id="newAttendeeName" placeholder="e.g. Maria Santos"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Role / Note</label>
+          <input type="text" class="form-control" id="newAttendeeRole" placeholder="e.g. Organizer, Guest"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Status</label>
+          <select class="form-select" id="newAttendeeStatus">
+            <option value="going">Going</option>
+            <option value="maybe">Maybe</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-primary-custom w-100" onclick="addAttendee()">Add Attendee</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addFoodModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-3">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-egg-fried me-2"></i>Add Food Item</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Dish / Food Name</label>
+          <input type="text" class="form-control" id="newFoodName" placeholder="e.g. Lechon Baboy"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Assigned To</label>
+          <input type="text" class="form-control" id="newFoodAssign" placeholder="e.g. Juan dela Cruz"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Category</label>
+          <select class="form-select" id="newFoodCategory">
+            <option>Main Dish</option>
+            <option>Side Dish</option>
+            <option>Drinks</option>
+            <option>Dessert</option>
+            <option>Snacks</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-primary-custom w-100" onclick="addFood()">Add Food</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="createPollModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-3">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-bar-chart-fill me-2"></i>Create Poll</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Poll Question</label>
+          <input type="text" class="form-control" id="pollQuestion" placeholder="e.g. Saan tayo mag-swimming?"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Option 1</label>
+          <input type="text" class="form-control" id="pollOpt1" placeholder="e.g. Splash Island"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Option 2</label>
+          <input type="text" class="form-control" id="pollOpt2" placeholder="e.g. Pansol, Laguna"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Option 3 (optional)</label>
+          <input type="text" class="form-control" id="pollOpt3" placeholder="e.g. Private Pool"/>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-primary-custom w-100" onclick="createPoll()">Create Poll</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API = '/api';
+
+// AUTH CHECK
+const teamName = sessionStorage.getItem('teamName');
+const userName = sessionStorage.getItem('userName');
+if (!teamName) window.location.href = '/login';
+document.getElementById('teamDisplay').textContent = teamName;
+document.getElementById('userDisplay').textContent = userName;
+
+async function api(path, method='GET', body=null) {
+  const opts = { method, credentials: 'include', headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  return res.json();
+}
+
+// SECTION NAV
+const sections = ['overview','attendees','food','polls'];
+const titles = {
+  overview: '<i class="bi bi-grid-fill me-2 text-primary"></i>Overview',
+  attendees: '<i class="bi bi-people-fill me-2 text-primary"></i>Attendees',
+  food: '<i class="bi bi-egg-fried me-2 text-warning"></i>Food Plan',
+  polls: '<i class="bi bi-bar-chart-fill me-2 text-primary"></i>Polls',
+};
+function showSection(id, el) {
+  sections.forEach(s => document.getElementById('sec-'+s).classList.toggle('d-none', s !== id));
+  document.querySelectorAll('.dash-sidebar .nav-link').forEach(l => l.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('pageTitle').innerHTML = titles[id];
+  const loaders = { overview: loadOverview, attendees: loadAttendees, food: loadFood, polls: loadPolls };
+  loaders[id]();
+  // close sidebar on mobile after nav click
+  if (window.innerWidth <= 768) toggleSidebar(false);
+}
+
+// HELPERS
+function initials(name) { return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+const catIcons = { 'Main Dish':'bi-egg-fried','Side Dish':'bi-bowl','Drinks':'bi-cup-straw','Dessert':'bi-cake2','Snacks':'bi-bag' };
+
+// OVERVIEW
+async function loadOverview() {
+  const [stats, attendees, foods] = await Promise.all([
+    api('/stats'), api('/attendees'), api('/foods')
+  ]);
+  document.getElementById('statAttendees').textContent = stats.attendees ?? 0;
+  document.getElementById('statConfirmed').textContent = stats.confirmed ?? 0;
+  document.getElementById('statFood').textContent = stats.foods ?? 0;
+  document.getElementById('statPolls').textContent = stats.polls ?? 0;
+
+  document.getElementById('overviewAttendees').innerHTML = attendees.length === 0
+    ? '<p class="text-muted text-center py-3">No attendees yet.</p>'
+    : attendees.slice(0,4).map(a => `
+      <div class="attendee-item">
+        <div class="avatar">${initials(a.name)}</div>
+        <div class="flex-grow-1">
+          <div class="attendee-name">${a.name}</div>
+          <div class="attendee-role">${a.role}</div>
+        </div>
+        <span class="badge-${a.status === 'going' ? 'going' : 'maybe'}">${a.status === 'going' ? 'Going' : 'Maybe'}</span>
+      </div>`).join('');
+
+  document.getElementById('overviewFood').innerHTML = foods.length === 0
+    ? '<p class="text-muted text-center py-3">No food items yet.</p>'
+    : foods.slice(0,4).map(f => `
+      <div class="food-item">
+        <div>
+          <div class="food-name">${f.name}</div>
+          <div class="food-assign"><i class="bi bi-person me-1"></i>${f.assigned_to} · ${f.category}</div>
+        </div>
+        <i class="bi bi-check-circle-fill text-success"></i>
+      </div>`).join('');
+}
+
+// ATTENDEES
+async function loadAttendees() {
+  const data = await api('/attendees');
+  document.getElementById('attendeeList').innerHTML = data.length === 0
+    ? '<p class="text-muted text-center py-3">No attendees yet. Add someone!</p>'
+    : data.map(a => `
+      <div class="attendee-item">
+        <div class="avatar">${initials(a.name)}</div>
+        <div class="flex-grow-1">
+          <div class="attendee-name">${a.name}</div>
+          <div class="attendee-role">${a.role}</div>
+        </div>
+        <span class="badge-${a.status === 'going' ? 'going' : 'maybe'} me-2">${a.status === 'going' ? 'Going' : 'Maybe'}</span>
+        <button class="btn btn-sm btn-outline-danger" onclick="removeAttendee(${a.id})">
+          <i class="bi bi-trash3"></i>
+        </button>
+      </div>`).join('');
+}
+
+async function addAttendee() {
+  const name = document.getElementById('newAttendeeName').value.trim();
+  const role = document.getElementById('newAttendeeRole').value.trim() || 'Guest';
+  const status = document.getElementById('newAttendeeStatus').value;
+  if (!name) return;
+  await api('/attendees', 'POST', { name, role, status });
+  bootstrap.Modal.getInstance(document.getElementById('addAttendeeModal')).hide();
+  document.getElementById('newAttendeeName').value = '';
+  document.getElementById('newAttendeeRole').value = '';
+  loadAttendees();
+}
+
+async function removeAttendee(id) {
+  await api('/attendees/' + id, 'DELETE');
+  loadAttendees();
+}
+
+// FOOD
+async function loadFood() {
+  const data = await api('/foods');
+  document.getElementById('foodList').innerHTML = data.length === 0
+    ? '<p class="text-muted text-center py-3">No food items yet. Add one!</p>'
+    : data.map(f => `
+      <div class="food-item">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon orange" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;">
+            <i class="bi ${catIcons[f.category] || 'bi-egg-fried'}"></i>
+          </div>
+          <div>
+            <div class="food-name">${f.name}</div>
+            <div class="food-assign">
+              <i class="bi bi-person me-1"></i>${f.assigned_to} &nbsp;·&nbsp;
+              <span class="badge bg-light text-dark border">${f.category}</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-danger" onclick="removeFood(${f.id})">
+          <i class="bi bi-trash3"></i>
+        </button>
+      </div>`).join('');
+}
+
+async function addFood() {
+  const name = document.getElementById('newFoodName').value.trim();
+  const assigned_to = document.getElementById('newFoodAssign').value.trim() || 'TBD';
+  const category = document.getElementById('newFoodCategory').value;
+  if (!name) return;
+  await api('/foods', 'POST', { name, assigned_to, category });
+  bootstrap.Modal.getInstance(document.getElementById('addFoodModal')).hide();
+  document.getElementById('newFoodName').value = '';
+  document.getElementById('newFoodAssign').value = '';
+  loadFood();
+}
+
+async function removeFood(id) {
+  await api('/foods/' + id, 'DELETE');
+  loadFood();
+}
+
+// POLLS
+async function loadPolls() {
+  const data = await api('/polls');
+  document.getElementById('pollList').innerHTML = data.length === 0
+    ? '<div class="col"><p class="text-muted text-center py-3">No polls yet. Create one!</p></div>'
+    : data.map(p => {
+        const total = p.options.reduce((s,o) => s + o.votes, 0) || 1;
+        return `
+        <div class="col-md-6">
+          <div class="section-card">
+            <div class="section-card-title"><i class="bi bi-question-circle-fill text-primary"></i> ${p.question}</div>
+            ${p.options.map(o => `
+              <div class="poll-option">
+                <div class="poll-label">
+                  <span>${o.label}</span>
+                  <span>${o.votes} vote${o.votes !== 1 ? 's' : ''} (${Math.round(o.votes/total*100)}%)</span>
+                </div>
+                <div class="poll-bar">
+                  <div class="poll-fill" style="width:${Math.round(o.votes/total*100)}%"></div>
+                </div>
+              </div>`).join('')}
+            <div class="d-flex gap-2 mt-3 flex-wrap">
+              ${p.options.map(o => `
+                <button class="btn btn-sm btn-outline-primary" onclick="vote(${p.id},${o.id})">
+                  <i class="bi bi-hand-thumbs-up me-1"></i>${o.label}
+                </button>`).join('')}
+              <button class="btn btn-sm btn-outline-danger ms-auto" onclick="removePoll(${p.id})">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+            <div class="d-flex gap-2 mt-2">
+              <input type="text" class="form-control form-control-sm" id="newOpt-${p.id}" placeholder="Add new option..."/>
+              <button class="btn btn-sm btn-primary-custom" onclick="addPollOption(${p.id})">
+                <i class="bi bi-plus-lg"></i>
+              </button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+}
+
+async function createPoll() {
+  const question = document.getElementById('pollQuestion').value.trim();
+  const o1 = document.getElementById('pollOpt1').value.trim();
+  const o2 = document.getElementById('pollOpt2').value.trim();
+  const o3 = document.getElementById('pollOpt3').value.trim();
+  if (!question || !o1 || !o2) return;
+  const options = [o1, o2];
+  if (o3) options.push(o3);
+  await api('/polls', 'POST', { question, options });
+  bootstrap.Modal.getInstance(document.getElementById('createPollModal')).hide();
+  ['pollQuestion','pollOpt1','pollOpt2','pollOpt3'].forEach(id => document.getElementById(id).value = '');
+  loadPolls();
+}
+
+async function addPollOption(pollId) {
+  const input = document.getElementById('newOpt-' + pollId);
+  const label = input.value.trim();
+  if (!label) return;
+  await api(`/polls/${pollId}/options`, 'POST', { label });
+  input.value = '';
+  loadPolls();
+}
+
+async function vote(pollId, optionId) {
+  await api(`/polls/${pollId}/vote/${optionId}`, 'POST');
+  loadPolls();
+}
+
+async function removePoll(id) {
+  await api('/polls/' + id, 'DELETE');
+  loadPolls();
+}
+
+// EVENT
+async function loadEvent() {
+  const data = await api('/event');
+  if (data.date) {
+    const formatted = new Date(data.date).toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('eventLabel').textContent = formatted + (data.location ? ' · ' + data.location : '');
+    document.getElementById('eventDateInput').value = data.date;
+    document.getElementById('eventLocation').value = data.location || '';
+  }
+}
+
+async function saveEvent() {
+  const date = document.getElementById('eventDateInput').value;
+  const location = document.getElementById('eventLocation').value.trim();
+  await api('/event', 'PUT', { date, location });
+  bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+  loadEvent();
+}
+
+async function doLogout() {
+  await api('/logout', 'POST');
+  sessionStorage.clear();
+  window.location.href = '/login';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar(force) {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const icon = document.getElementById('hamburgerIcon');
+  const isOpen = sidebar.classList.contains('open');
+  const shouldOpen = force !== undefined ? force : !isOpen;
+  sidebar.classList.toggle('open', shouldOpen);
+  overlay.classList.toggle('show', shouldOpen);
+  icon.className = shouldOpen ? 'bi bi-x-lg' : 'bi bi-list';
+}
+
+// INIT
+loadEvent();
+loadOverview();
+</script>
+</body>
+</html>

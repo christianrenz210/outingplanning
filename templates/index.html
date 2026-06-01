@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OutingPlanning – Swimming Outing Planner</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <i class="bi bi-water me-2"></i>OutingPlanning
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+        <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+        <li class="nav-item"><a class="nav-link" href="#how">How It Works</a></li>
+        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+        <li class="nav-item">
+          <a href="/login" class="btn btn-hero ms-lg-3 px-4">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Get Started
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <p class="text-uppercase fw-semibold mb-2" style="color:#90e0ef;letter-spacing:2px;font-size:.85rem;">
+          <i class="bi bi-sun me-1"></i> Summer Outing Planner
+        </p>
+        <h1 class="hero-title">Plan Your <span>Swimming Outing</span> Like a Pro</h1>
+        <p class="hero-sub">
+          Organize your team, manage the guest list, plan the food, and vote on decisions — all in one place. No more messy group chats.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="/login" class="btn btn-hero">
+            <i class="bi bi-rocket-takeoff me-2"></i>Start Planning
+          </a>
+          <a href="#features" class="btn btn-outline-hero">
+            <i class="bi bi-info-circle me-2"></i>Learn More
+          </a>
+        </div>
+        <div class="d-flex gap-4 mt-4">
+          <div>
+            <div class="fw-bold text-white fs-5">100%</div>
+            <div style="color:#90e0ef;font-size:.82rem;">Free to Use</div>
+          </div>
+          <div>
+            <div class="fw-bold text-white fs-5">Real-time</div>
+            <div style="color:#90e0ef;font-size:.82rem;">Team Polls</div>
+          </div>
+          <div>
+            <div class="fw-bold text-white fs-5">Easy</div>
+            <div style="color:#90e0ef;font-size:.82rem;">Setup</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 hero-img-wrap mt-5 mt-lg-0">
+        <i class="bi bi-water hero-icon-big"></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="py-5" id="features">
+  <div class="container">
+    <div class="text-center">
+      <h2 class="section-title">Everything You Need</h2>
+      <p class="section-sub">All the tools to make your swimming outing stress-free and fun.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-people-fill"></i></div>
+          <h5>Guest Management</h5>
+          <p>Add and track who's coming. See attendance status at a glance — confirmed, maybe, or pending.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-egg-fried"></i></div>
+          <h5>Food Planning</h5>
+          <p>List all the dishes to prepare and assign who brings or cooks each item. No duplicates, no missing food.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-bar-chart-fill"></i></div>
+          <h5>Team Polls</h5>
+          <p>Create polls for venue, date, activities, and more. Let the whole team vote and decide together.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-calendar-check-fill"></i></div>
+          <h5>Event Scheduling</h5>
+          <p>Set the date, time, and location of your outing. Keep everyone on the same schedule.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-shield-lock-fill"></i></div>
+          <h5>Team Login</h5>
+          <p>Secure team-based login so only your group can access and manage the outing details.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="bi bi-phone-fill"></i></div>
+          <h5>Mobile Friendly</h5>
+          <p>Access your outing plan from any device — phone, tablet, or desktop. Always in sync.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section py-5" id="how">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="section-title text-white">How It Works</h2>
+      <p style="color:#90e0ef;">Four simple steps to a perfectly planned outing.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h5>Create Your Team</h5>
+          <p>Register your group and set up your team account to get started.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h5>Add Attendees</h5>
+          <p>Invite your friends and family. Track who's confirmed and who's still deciding.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h5>Plan the Food</h5>
+          <p>List all the dishes and assign responsibilities so nothing is forgotten.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <h5>Vote & Finalize</h5>
+          <p>Create polls for key decisions and finalize the plan with your team's input.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="py-5" id="about" style="background:#f0f9ff;">
+  <div class="container">
+    <div class="row align-items-center g-5">
+
+      <!-- FUN SVG ILLUSTRATION -->
+      <div class="col-lg-5 text-center">
+        <svg viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg" style="max-width:420px;width:100%;">
+
+          <!-- Sky -->
+          <rect width="400" height="320" fill="#e0f7ff" rx="20"/>
+
+          <!-- Sun -->
+          <circle cx="340" cy="55" r="32" fill="#FFD93D"/>
+          <line x1="340" y1="10" x2="340" y2="0" stroke="#FFD93D" stroke-width="4" stroke-linecap="round"/>
+          <line x1="340" y1="100" x2="340" y2="110" stroke="#FFD93D" stroke-width="4" stroke-linecap="round"/>
+          <line x1="295" y1="55" x2="285" y2="55" stroke="#FFD93D" stroke-width="4" stroke-linecap="round"/>
+          <line x1="385" y1="55" x2="395" y2="55" stroke="#FFD93D" stroke-width="4" stroke-linecap="round"/>
+          <line x1="308" y1="23" x2="301" y2="16" stroke="#FFD93D" stroke-width="4" stroke-linecap="round"/>
+          <line x1="372" y1="87" x2="379" y2="94" stroke="#FFD93D" stroke-width="4" stroke-linecap="round"/>
+          <line x1="372" y1="23" x2="379" y2="16" stroke="#FFD93D" stroke-width="4" stroke-linecap="round"/>
+          <line x1="308" y1="87" x2="301" y2="94" stroke="#FFD93D" stroke-width="4" stroke-linecap="round"/>
+
+          <!-- Clouds -->
+          <ellipse cx="80" cy="45" rx="38" ry="18" fill="white" opacity=".9"/>
+          <ellipse cx="105" cy="38" rx="28" ry="16" fill="white" opacity=".9"/>
+          <ellipse cx="55" cy="40" rx="22" ry="13" fill="white" opacity=".9"/>
+          <ellipse cx="210" cy="30" rx="30" ry="14" fill="white" opacity=".8"/>
+          <ellipse cx="235" cy="24" rx="22" ry="12" fill="white" opacity=".8"/>
+
+          <!-- Pool water -->
+          <rect x="20" y="200" width="360" height="100" rx="16" fill="#00b4d8"/>
+          <!-- Pool waves -->
+          <path d="M20 215 Q65 205 110 215 Q155 225 200 215 Q245 205 290 215 Q335 225 380 215" fill="none" stroke="#90e0ef" stroke-width="3"/>
+          <path d="M20 235 Q65 225 110 235 Q155 245 200 235 Q245 225 290 235 Q335 245 380 235" fill="none" stroke="#caf0f8" stroke-width="2" opacity=".7"/>
+          <!-- Pool edge -->
+          <rect x="10" y="193" width="380" height="14" rx="7" fill="#0077b6"/>
+          <!-- Pool lane lines -->
+          <line x1="100" y1="207" x2="100" y2="300" stroke="#48cae4" stroke-width="2" stroke-dasharray="8,6" opacity=".5"/>
+          <line x1="200" y1="207" x2="200" y2="300" stroke="#48cae4" stroke-width="2" stroke-dasharray="8,6" opacity=".5"/>
+          <line x1="300" y1="207" x2="300" y2="300" stroke="#48cae4" stroke-width="2" stroke-dasharray="8,6" opacity=".5"/>
+
+          <!-- Poolside tiles -->
+          <rect x="10" y="175" width="380" height="20" rx="4" fill="#ade8f4"/>
+
+          <!-- Beach umbrella -->
+          <line x1="60" y1="175" x2="75" y2="110" stroke="#e76f51" stroke-width="4" stroke-linecap="round"/>
+          <ellipse cx="75" cy="110" rx="42" ry="14" fill="#e76f51" opacity=".9"/>
+          <ellipse cx="75" cy="110" rx="28" ry="10" fill="#f4a261" opacity=".85"/>
+          <ellipse cx="75" cy="110" rx="14" ry="6" fill="#e76f51" opacity=".9"/>
+
+          <!-- Person 1 swimming (left) -->
+          <!-- body -->
+          <ellipse cx="80" cy="218" rx="18" ry="9" fill="#ff6b6b" opacity=".9"/>
+          <!-- head -->
+          <circle cx="98" cy="213" r="10" fill="#f4a261"/>
+          <!-- swim cap -->
+          <ellipse cx="98" cy="208" rx="10" ry="6" fill="#e63946"/>
+          <!-- arm -->
+          <path d="M62 216 Q50 208 45 212" fill="none" stroke="#f4a261" stroke-width="4" stroke-linecap="round"/>
+          <!-- goggles -->
+          <circle cx="94" cy="213" r="3" fill="none" stroke="#0077b6" stroke-width="1.5"/>
+          <circle cx="102" cy="213" r="3" fill="none" stroke="#0077b6" stroke-width="1.5"/>
+          <line x1="97" y1="213" x2="99" y2="213" stroke="#0077b6" stroke-width="1.5"/>
+
+          <!-- Person 2 swimming (middle) -->
+          <ellipse cx="200" cy="222" rx="20" ry="9" fill="#4cc9f0" opacity=".9"/>
+          <circle cx="220" cy="216" r="11" fill="#f4a261"/>
+          <ellipse cx="220" cy="210" rx="11" ry="6" fill="#7209b7"/>
+          <path d="M180 220 Q168 212 163 216" fill="none" stroke="#f4a261" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="216" cy="216" r="3" fill="none" stroke="#0077b6" stroke-width="1.5"/>
+          <circle cx="224" cy="216" r="3" fill="none" stroke="#0077b6" stroke-width="1.5"/>
+          <line x1="219" y1="216" x2="221" y2="216" stroke="#0077b6" stroke-width="1.5"/>
+
+          <!-- Person 3 floating on tube (right) -->
+          <!-- inflatable ring -->
+          <ellipse cx="320" cy="225" rx="30" ry="13" fill="#ff6b6b" opacity=".85"/>
+          <ellipse cx="320" cy="225" rx="20" ry="8" fill="#e0f7ff"/>
+          <!-- stripes on tube -->
+          <path d="M295 220 Q320 212 345 220" fill="none" stroke="white" stroke-width="3" opacity=".6"/>
+          <!-- person on tube -->
+          <circle cx="320" cy="210" r="11" fill="#f4a261"/>
+          <ellipse cx="320" cy="204" rx="11" ry="6" fill="#2ec4b6"/>
+          <!-- arms out -->
+          <path d="M309 215 Q298 210 293 214" fill="none" stroke="#f4a261" stroke-width="4" stroke-linecap="round"/>
+          <path d="M331 215 Q342 210 347 214" fill="none" stroke="#f4a261" stroke-width="4" stroke-linecap="round"/>
+          <!-- smile -->
+          <path d="M316 213 Q320 217 324 213" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+
+          <!-- Splash effects -->
+          <path d="M130 200 Q135 190 140 200" fill="none" stroke="#90e0ef" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M250 198 Q256 188 262 198" fill="none" stroke="#90e0ef" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="145" cy="196" r="2" fill="#caf0f8"/>
+          <circle cx="258" cy="194" r="2" fill="#caf0f8"/>
+
+          <!-- Food on poolside -->
+          <!-- Grill -->
+          <rect x="290" y="155" width="50" height="22" rx="5" fill="#333"/>
+          <rect x="295" y="150" width="40" height="8" rx="3" fill="#555"/>
+          <line x1="300" y1="158" x2="300" y2="175" stroke="#ff6b6b" stroke-width="2"/>
+          <line x1="310" y1="158" x2="310" y2="175" stroke="#ff6b6b" stroke-width="2"/>
+          <line x1="320" y1="158" x2="320" y2="175" stroke="#ff6b6b" stroke-width="2"/>
+          <line x1="330" y1="158" x2="330" y2="175" stroke="#ff6b6b" stroke-width="2"/>
+          <!-- smoke -->
+          <path d="M308 148 Q312 140 308 132" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+          <path d="M320 146 Q324 138 320 130" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+          <!-- grill legs -->
+          <line x1="300" y1="177" x2="296" y2="193" stroke="#333" stroke-width="3" stroke-linecap="round"/>
+          <line x1="330" y1="177" x2="334" y2="193" stroke="#333" stroke-width="3" stroke-linecap="round"/>
+
+          <!-- Cooler -->
+          <rect x="140" y="158" width="36" height="26" rx="5" fill="#0077b6"/>
+          <rect x="140" y="158" width="36" height="8" rx="5" fill="#023e8a"/>
+          <rect x="153" y="162" width="10" height="4" rx="2" fill="#90e0ef"/>
+
+          <!-- Ball in air -->
+          <circle cx="170" cy="120" r="16" fill="#ff6b6b"/>
+          <path d="M158 112 Q170 106 182 112" fill="none" stroke="white" stroke-width="2"/>
+          <path d="M155 122 Q170 130 185 122" fill="none" stroke="white" stroke-width="2"/>
+          <path d="M162 108 Q158 122 162 136" fill="none" stroke="white" stroke-width="2"/>
+          <path d="M178 108 Q182 122 178 136" fill="none" stroke="white" stroke-width="2"/>
+
+        </svg>
+      </div>
+
+      <div class="col-lg-7">
+        <h2 class="section-title">Built for Groups, Made for Fun</h2>
+        <p class="text-muted mt-3 mb-3">
+          OutingPlanning was created to solve the chaos of planning group swimming outings. Instead of scattered messages and forgotten tasks, everything lives in one organized dashboard your whole team can access.
+        </p>
+        <ul class="list-unstyled">
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i>No more <em>&#8220;sino ba ang nagdadala ng pagkain?&#8221;</em></li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i>No more <em>&#8220;ilan na ba tayong sasama?&#8221;</em></li>
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-primary me-2"></i>No more <em>&#8220;saan ba tayo pumunta?&#8221;</em></li>
+        </ul>
+        <a href="/login" class="btn btn-hero mt-3">
+          <i class="bi bi-arrow-right-circle me-2"></i>Try It Now
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section py-5 text-center text-white">
+  <div class="container">
+    <i class="bi bi-water fs-1 mb-3 d-block"></i>
+    <h2 class="fw-800 mb-2" style="font-weight:800;">Ready to Plan Your Outing?</h2>
+    <p class="mb-4" style="opacity:.9;">Join your team and start organizing your best swimming outing yet.</p>
+    <a href="/login" class="btn btn-hero px-5 py-3 fs-5">
+      <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="py-4 text-center">
+  <div class="container">
+    <div class="mb-2">
+      <i class="bi bi-water me-2"></i>
+      <strong style="color:#caf0f8;">OutingPlanning</strong>
+    </div>
+    <p class="mb-0" style="color:#90e0ef;font-size:.85rem;">
+      &copy; 2025 OutingPlanning. Designed for swimming outing teams.
+    </p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
