@@ -175,12 +175,19 @@ def login():
     cur = conn.cursor()
     cur.execute(q('SELECT * FROM teams WHERE password_hash=?'), (hash_pw(pw),))
     row = fetchone(cur)
-    conn.close()
     if not row:
+        conn.close()
         return jsonify({'error': 'Incorrect password'}), 401
     session['team_id']   = row['id']
     session['team_name'] = row['name']
     session['user_name'] = user
+    # auto-add to attendees if not yet listed
+    cur.execute(q('SELECT id FROM attendees WHERE team_id=? AND LOWER(name)=LOWER(?)'), (row['id'], user))
+    if not fetchone(cur):
+        cur.execute(q('INSERT INTO attendees (team_id,name,role,status) VALUES (?,?,?,?)'),
+                    (row['id'], user, 'Member', 'going'))
+        conn.commit()
+    conn.close()
     return jsonify({'team': row['name'], 'user': user})
 
 @app.route('/api/logout', methods=['POST'])
